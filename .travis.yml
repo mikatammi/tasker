@@ -1,0 +1,7 @@
+language: haskell
+ghc:
+  - "8.6.4"
+env:
+  - PACKAGEDIR="tasker-service-api"
+  - PACKAGEDIR="tasker-service"
+before_install: cd ${PACKAGEDIR}
