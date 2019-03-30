@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Tasker.Server (serverMain)
 
 main :: IO ()
-main = someFunc
+main = serverMain
