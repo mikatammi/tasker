@@ -5,6 +5,7 @@ module Tasker.Server
 import Tasker.Api (UserApi)
 import qualified Tasker.Api.Types as T (User(User))
 
+import Control.Monad.IO.Class (liftIO)
 import Data.Proxy
 import Data.Aeson (ToJSON)
 
@@ -14,7 +15,9 @@ import Network.Wai.Handler.Warp (run)
 instance ToJSON T.User
 
 server1 :: Server UserApi
-server1 = return [T.User "HelloWorld" "hello@world.test"]
+server1 = do
+  liftIO $ putStrLn "Returning test user"
+  return [T.User "HelloWorld" "hello@world.test"]
 
 userApi :: Proxy UserApi
 userApi = Proxy
