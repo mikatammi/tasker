@@ -25,6 +25,7 @@ library:
   dependencies:
   - tasker-service-api
   - servant-server
+  - servant-auth-server
   - warp
   - aeson
 

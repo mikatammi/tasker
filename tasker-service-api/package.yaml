@@ -24,6 +24,7 @@ library:
   source-dirs: src
   dependencies:
     - servant
+    - servant-auth-server
 
 tests:
   tasker-service-api-test:
