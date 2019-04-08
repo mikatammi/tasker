@@ -8,7 +8,7 @@ module Tasker.Server
 
 import Tasker.Api (UnprotectedApi, UserApi)
 import qualified Tasker.Api.Types as T (Login(Login), User(User))
-import qualified Tasker.Server.Types.PostgresSettings as ST (
+import qualified Tasker.Server.Types.PostgresSettings as PS (
   PostgresSettings( PostgresSettings
                   , dbHost
                   , dbPort
@@ -107,35 +107,41 @@ sumStatement = Statement.Statement sql encoder decoder True where
 sumSession :: Int64 -> Int64 -> Session.Session Int64
 sumSession a b = Session.statement (a, b) sumStatement
 
-connectionSettingsFromPostgresSettings :: ST.PostgresSettings ->
+connectionSettingsFromPostgresSettings :: PS.PostgresSettings ->
                                           Connection.Settings
 connectionSettingsFromPostgresSettings ps =
   Connection.settings h po u pa db
   where
-    h = (ST.dbHost ps)
-    po = (ST.dbPort ps)
-    u = (ST.dbUser ps)
-    pa = (ST.dbPass ps)
-    db = (ST.dbDb ps)
+    h = (PS.dbHost ps)
+    po = (PS.dbPort ps)
+    u = (PS.dbUser ps)
+    pa = (PS.dbPass ps)
+    db = (PS.dbDb ps)
+
+withConnection :: PS.PostgresSettings -> (Connection.Connection -> IO ()) -> IO ()
+withConnection ps f = do
+  let cs = connectionSettingsFromPostgresSettings ps
+  maybeConn <- Connection.acquire cs
+  case maybeConn of Left err -> case err of Just e -> error $ "Connection error: " <> show e
+                                            Nothing -> error "Connection error"
+                    Right connection -> do
+                      putStrLn "Connected to Postgres"
+                      f connection
 
 serverMain :: IO ()
 serverMain = do
   putStrLn "serverMain"
   myKey <- generateKey
-  let ps = ST.PostgresSettings "localhost"
+  let ps = PS.PostgresSettings "localhost"
                                5432
                                "tasker"
                                "01078ce73029a896f5e67c483f1d8ff936ac8724713123ed90bf04aee71125bf"
                                "tasker"
-      connectionSettings = connectionSettingsFromPostgresSettings ps
-  maybeConnection <- Connection.acquire connectionSettings
-  case maybeConnection of Left err -> case err of Just e -> error $ "Connection error: " <> show e
-                                                  Nothing -> error "Connection error"
-                          Right connection -> do
-                            result <- Session.run (sumSession 1 2) connection
-                            putStrLn "Hello from Hasql Postgresql connection"
-                            case result of Left err -> error $ show err
-                                           Right r -> putStrLn $ show r
+  withConnection ps $ \c -> do
+    result <- Session.run (sumSession 1 2) c
+    case result of Left err -> error $ show err
+                   Right r -> putStrLn $ show r
+
   let jwtCfg = defaultJWTSettings myKey
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
       api = Proxy :: Proxy (Api '[JWT])
