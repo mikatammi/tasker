@@ -1,0 +1,15 @@
+version: '3'
+services:
+  tasker-db:
+    image: postgres
+    volumes:
+    - tasker-db-data:/var/lib/postgresql/data
+    ports:
+    - 5432:5432
+    restart: always
+    environment:
+      POSTGRES_USER: tasker
+      POSTGRES_DB: tasker
+      POSTGRES_PASSWORD: 01078ce73029a896f5e67c483f1d8ff936ac8724713123ed90bf04aee71125bf
+volumes:
+  tasker-db-data:
