@@ -28,6 +28,8 @@ library:
   - servant-auth-server
   - warp
   - aeson
+  - hasql
+  - bytestring
 
 executables:
   tasker-service-exe:
