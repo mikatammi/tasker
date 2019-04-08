@@ -1,5 +1,10 @@
 version: '3'
 services:
+  tasker-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.tasker-service
+    image: tasker-service:latest
   tasker-db:
     image: postgres
     volumes:

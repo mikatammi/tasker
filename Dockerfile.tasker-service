@@ -1,0 +1,28 @@
+FROM ubuntu:16.04
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get -y update && \
+    apt-get -y install wget g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev git gnupg && \
+    wget https://get.haskellstack.org/stable/linux-x86_64.tar.gz -O /tmp/stack.tar.gz && \
+    mkdir -pv /tmp/stack && \
+    cd /tmp/stack/ && \
+    tar -xzvf /tmp/stack.tar.gz && \
+    mv -v /tmp/stack/stack-1.9.3-linux-x86_64/stack /usr/local/bin
+RUN useradd -d /home/tasker-service -c "Tasker Service" tasker-service
+RUN mkdir -pv /home/tasker-service/tasker-service && \
+    mkdir -pv /home/tasker-service/{tasker-service,tasker-service-api} && \
+    chown -Rv tasker-service:tasker-service /home/tasker-service/
+ENV HOME /home/tasker-service
+WORKDIR /home/tasker-service/tasker-service
+ADD stack.yaml /home/tasker-service/tasker-service
+ADD tasker-service/package.yaml /home/tasker-service/tasker-service/tasker-service/
+ADD tasker-service-api/package.yaml /home/tasker-service/tasker-service/tasker-service-api/
+RUN chown -Rv tasker-service:tasker-service /home/tasker-service/tasker-service
+USER tasker-service
+RUN stack setup
+RUN stack build --only-dependencies
+USER root
+ADD . /home/tasker-service/tasker-service/
+RUN chown -Rv tasker-service:tasker-service /home/tasker-service/tasker-service
+USER tasker-service
+RUN stack build
+ENTRYPOINT stack run tasker-service
